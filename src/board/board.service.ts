@@ -151,7 +151,9 @@ export class BoardService {
 
   async deleteBoard(boardId: number, userId: number): Promise<string> {
     const validatedBoard = await this.validateBoardByUserId(boardId, userId);
-    await this.s3Service.deleteFile(validatedBoard.imageUrl);
+    if (validatedBoard.imageUrl) {
+      await this.s3Service.deleteFile(validatedBoard.imageUrl);
+    }
     await this.boardRepository.deleteBoard(validatedBoard.boardId);
     await this.commentService.deleteCommentByBoardId(boardId);
     return `${validatedBoard.boardId}번 게시물 삭제`;

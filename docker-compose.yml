@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  app:
+    image: zin354/v8corp
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    env_file:
+      - ./.env
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME} # 생성할 데이터베이스 이름
+      MYSQL_USER: ${DB_USERNAME} # 사용자 이름
+      MYSQL_PASSWORD: ${DB_PASSWORD} # 사용자 비밀번호
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD} # root 비밀번호
+    volumes:
+      - db-data:/var/lib/mysql # 데이터 지속성을 위한 볼륨 마운트
+    ports:
+      - '3306:3306' # MySQL 접근을 위한 포트 매핑
+
+volumes:
+  db-data: # MySQL 데이터를 저장할 볼륨
