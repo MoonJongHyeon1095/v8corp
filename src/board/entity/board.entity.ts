@@ -8,36 +8,70 @@ import {
   OneToMany,
   JoinColumn,
 } from 'typeorm';
+import { View } from './view.entity';
 
 @Entity()
 export class Board {
   @PrimaryGeneratedColumn()
   boardId?: number;
 
-  @Column()
+  @Column({
+    length: 20,
+    nullable: false,
+  })
   author: string;
 
-  @Column()
+  @Column({
+    length: 50,
+    nullable: false,
+  })
   title: string;
 
-  @Column()
+  @Column({
+    length: 200,
+    nullable: false,
+  })
   content: string;
 
-  @Column()
+  @Column('tinyint', {
+    unsigned: true,
+    nullable: false,
+  })
   category: number;
 
   @Column({
-    type: 'varchar',
+    length: 255,
     nullable: true,
   })
   imageUrl: string;
 
-  @Column({
-    type: 'int',
-    nullable: false,
+  //총 조회수
+  @Column('int', {
+    unsigned: true,
     default: 0,
   })
   viewCount: number;
+
+  //연간 조회수
+  @Column('int', {
+    unsigned: true,
+    default: 0,
+  })
+  annualView: number;
+
+  //월간 조회수
+  @Column('int', {
+    unsigned: true,
+    default: 0,
+  })
+  monthlyView: number;
+
+  //주간 조회수
+  @Column('int', {
+    unsigned: true,
+    default: 0,
+  })
+  weeklyView: number;
 
   @Column({
     type: 'timestamp',
@@ -61,4 +95,7 @@ export class Board {
 
   @OneToMany(() => Comment, (comment) => comment.board)
   comments: Comment[];
+
+  @OneToMany(() => View, (view) => view.board)
+  views: View[];
 }

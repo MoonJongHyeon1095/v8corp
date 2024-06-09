@@ -7,19 +7,29 @@ export class User {
   @PrimaryGeneratedColumn()
   userId?: number;
 
-  @Column()
+  @Column({
+    length: 20,
+    nullable: false,
+  })
   username: string;
 
-  @Column()
+  @Column({
+    length: 255,
+    nullable: false,
+  })
   password: string;
 
   @Column({
-    type: 'varchar',
+    length: 10,
+    nullable: false,
     default: 'normal',
   })
   role: string;
 
-  @Column({ nullable: true })
+  @Column({
+    length: 255,
+    nullable: true,
+  })
   refreshToken?: string;
 
   @OneToMany(() => Board, (board) => board.user)

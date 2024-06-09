@@ -32,7 +32,7 @@ import { Board } from './entity/board.entity';
 
 @Controller('v1/api/board')
 export class BoardController {
-  constructor(private boardService: BoardService) {}
+  constructor(private readonly boardService: BoardService) {}
   /**
    * 글 검색 API
    * @param query 검색 쿼리
@@ -47,8 +47,9 @@ export class BoardController {
     return this.boardService.search(query, criteria);
   }
   /**
-   * QnA 조회 API
-   * @param sortBy ?sortBy=createdAt or ?sortBy=viewCount
+   * QnA 리스트 조회 API
+   * 최신순, 총 조회순, 주간 조회순, 월간 조회순, 연간 조회순
+   * @param sortBy createdAt or totalView or weeklyView or monthlyView or annualView
    * @returns 공지와 QnA 리스트 응답
    */
   @Get('qna')
@@ -59,7 +60,7 @@ export class BoardController {
   }
 
   /**
-   * 1:1 문의 조회 API (로그인 필요)
+   * 1:1 문의 리스트 조회 API (로그인 필요)
    * 사용자가 작성한 문의글만 응답
    * @returns 문의한 게시물 최신순 정렬
    */
@@ -68,6 +69,18 @@ export class BoardController {
   async getInquiryList(@Req() req: Request): Promise<Board[]> {
     const user = req.user as ValidatedUserDto;
     return this.boardService.getInquiryList(user.userId);
+  }
+
+  /**
+   * 게시글 상세 조회 API
+   * @param boardId 경로 변수
+   * @returns 댓글 대댓글 포함 게시글 상세 응답
+   */
+  @Get(':boardId')
+  async getOne(
+    @Param('boardId', ParseIntPipe) boardId: number,
+  ): Promise<Board> {
+    return this.boardService.getOne(boardId);
   }
 
   /**

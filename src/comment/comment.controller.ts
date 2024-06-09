@@ -78,6 +78,6 @@ export class CommentController {
     @Param('commentId', ParseIntPipe) commentId: number,
   ): Promise<string> {
     const user = req.user as ValidatedUserDto;
-    return this.commentService.deleteComment(commentId, user.userId);
+    return this.commentService.deleteCommentByCommentId(commentId, user.userId);
   }
 }

@@ -52,11 +52,22 @@ export class CommentService {
     if (result) return this.commentRepository.findByCommentId(commentId);
   }
 
-  async deleteComment(commentId: number, userId: number): Promise<string> {
+  async deleteCommentByCommentId(
+    commentId: number,
+    userId: number,
+  ): Promise<string> {
     const comment = await this.findCommentById(commentId);
     this.validateUser(comment.userId, userId);
     const result = await this.commentRepository.deleteComment(commentId);
     if (result) return `${commentId}번 댓글 삭제 완료`;
+  }
+
+  async deleteCommentByBoardId(boardId: number): Promise<void> {
+    const commentIds = await this.findAllCommentIdsByBoardId(boardId);
+
+    for (const commentId of commentIds) {
+      await this.commentRepository.deleteComment(commentId);
+    }
   }
 
   private async findCommentById(commentId: number): Promise<Comment> {
@@ -65,6 +76,13 @@ export class CommentService {
       throw new NotFoundException(`${commentId}번 댓글이 없습니다.`);
     return comment;
   }
+
+  private async findAllCommentIdsByBoardId(boardId: number): Promise<number[]> {
+    const comments =
+      await this.commentRepository.findAllCommentsByBoardId(boardId);
+    return comments.map((comment) => comment.commentId);
+  }
+
   private validateUser(commentUserId: number, userId: number): void {
     if (commentUserId !== userId) {
       throw new ForbiddenException(

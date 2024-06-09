@@ -85,7 +85,7 @@ export class CommentRepository {
     return result.affected;
   }
 
-  async findCommentsByBoardId(boardId: number): Promise<Comment[]> {
+  async findAllCommentsByBoardId(boardId: number): Promise<Comment[]> {
     return this.dataSource
       .createQueryBuilder()
       .select('comment')

@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { BoardModule } from './board/board.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -8,6 +6,7 @@ import * as dotenv from 'dotenv';
 import { AppConfigModule } from './config/config.module';
 import { ConfigService } from '@nestjs/config';
 import { CommentModule } from './comment/comment.module';
+import { StatisticModule } from './statistic/statistic.module';
 
 // dotenv.config();
 
@@ -30,8 +29,9 @@ import { CommentModule } from './comment/comment.module';
     UserModule,
     BoardModule,
     CommentModule,
+    StatisticModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

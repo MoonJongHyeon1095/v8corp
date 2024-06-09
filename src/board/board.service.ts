@@ -3,6 +3,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { CommentService } from 'src/comment/comment.service';
 import { ValidatedUserDto } from 'src/user/dto/user.dto';
 import { BoardRepository } from './board.repository';
 import {
@@ -12,12 +13,15 @@ import {
 } from './dto/board.dto';
 import { Board } from './entity/board.entity';
 import { S3Service } from './s3.service';
+import { ViewRepository } from './view.repository';
 
 @Injectable()
 export class BoardService {
   constructor(
-    private s3Service: S3Service,
-    private boardRepository: BoardRepository,
+    private readonly s3Service: S3Service,
+    private readonly boardRepository: BoardRepository,
+    private readonly viewRepository: ViewRepository,
+    private readonly commentService: CommentService,
   ) {}
 
   async search(query: string, criteria: string) {
@@ -32,14 +36,46 @@ export class BoardService {
     }
   }
 
+  async getOne(boardId: number) {
+    const board = await this.boardRepository.findOneBoardByBoardId(boardId);
+    if (!board) throw new NotFoundException('해당 게시물을 찾을 수 없슺니다.');
+
+    const viewedAt = this.getKoreanDate();
+    await this.viewRepository.createView(boardId, viewedAt);
+
+    await this.boardRepository.updateViewCount(boardId);
+
+    // 댓글과 대댓글 commentTag로 그룹화
+    const commentGroup = board.comments.map((comment) => ({
+      commentTag: comment.commentTag,
+      ...comment,
+    }));
+    // commentId로 정렬, commentTag 그룹 안에서 최신순 정렬
+    commentGroup.sort((a, b) => a.commentId - b.commentId);
+    return {
+      ...board,
+      commentGroup,
+    };
+  }
+
   async getQnaList(sortBy: string): Promise<GetQnAResponseDto[]> {
     const noticeList = await this.boardRepository.findAllNotices();
     let qnaList;
-    if (sortBy === 'createdAt') {
-      qnaList = await this.boardRepository.findAllQnaSortByCreatedAt();
-    } else if (sortBy === 'viewCount') {
-      qnaList = await this.boardRepository.findAllQnaSortByViewCount();
+    switch (sortBy) {
+      case 'createdAt':
+        qnaList = await this.boardRepository.findAllQnaSortByCreatedAt();
+      case 'totalView':
+        qnaList = await this.boardRepository.findAllQnaSortByViewCount();
+      case 'weeklyView':
+        qnaList = await this.boardRepository.findAllQnaSortByWeeklyView();
+      case 'monthlyView':
+        qnaList = await this.boardRepository.findAllQnaSortByMonthlyView();
+      case 'annualView':
+        qnaList = await this.boardRepository.findAllQnaSortByAnnualView();
+      default:
+        qnaList = await this.boardRepository.findAllQnaSortByCreatedAt();
     }
+
     const response: GetQnAResponseDto[] = [
       {
         notice: noticeList,
@@ -117,6 +153,7 @@ export class BoardService {
     const validatedBoard = await this.validateBoardByUserId(boardId, userId);
     await this.s3Service.deleteFile(validatedBoard.imageUrl);
     await this.boardRepository.deleteBoard(validatedBoard.boardId);
+    await this.commentService.deleteCommentByBoardId(boardId);
     return `${validatedBoard.boardId}번 게시물 삭제`;
   }
 
@@ -135,16 +172,30 @@ export class BoardService {
     await this.s3Service.modifyFile(imageUrl, file);
   }
 
-  async validateBoardByUserId(boardId: number, userId: number): Promise<Board> {
-    const board = await this.boardRepository.getBoardById(boardId);
-    // 게시물이 없는 경우
-    if (!board) {
-      throw new NotFoundException(`${boardId}번 게시물이 없습니다.`);
-    }
+  private async validateBoardByUserId(
+    boardId: number,
+    userId: number,
+  ): Promise<Board> {
+    const board = await this.findBoardById(boardId);
     //작성자가 아닌 경우
     if (board.userId !== userId) {
       throw new UnauthorizedException('글 작성자가 아닙니다.');
     }
     return board;
+  }
+
+  private async findBoardById(boardId: number) {
+    const board = await this.boardRepository.getBoardById(boardId);
+    // 게시물이 없는 경우
+    if (!board) {
+      throw new NotFoundException(`${boardId}번 게시물이 없습니다.`);
+    }
+    return board;
+  }
+
+  private getKoreanDate(): Date {
+    const date = new Date();
+    date.setHours(date.getHours() + 9); // 한국 시간으로 변환 (UTC+9)
+    return new Date(date.toISOString().split('T')[0]); // yyyy-MM-dd 형식으로 변환
   }
 }

@@ -4,7 +4,6 @@ import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
-  OneToMany,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
@@ -14,10 +13,16 @@ export class Comment {
   @PrimaryGeneratedColumn()
   commentId?: number;
 
-  @Column()
+  @Column({
+    length: 50,
+    nullable: false,
+  })
   content: string;
 
-  @Column()
+  @Column({
+    length: 20,
+    nullable: false,
+  })
   commentTag: string;
 
   @Column({
@@ -35,7 +40,7 @@ export class Comment {
   boardId: number;
 
   @ManyToOne(() => User, (user) => user.comments)
-  @JoinColumn({ name: 'boardId' })
+  @JoinColumn({ name: 'userId' })
   user: User;
 
   @Column()
