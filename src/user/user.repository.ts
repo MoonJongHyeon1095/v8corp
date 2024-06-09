@@ -35,4 +35,16 @@ export class UserRepository {
 
     return this.findByUsername(username);
   }
+
+  async updateRefreshToken(
+    userId: number,
+    refreshToken: string,
+  ): Promise<void> {
+    await this.dataSource
+      .createQueryBuilder()
+      .update(User)
+      .set({ refreshToken })
+      .where('userId = :userId', { userId })
+      .execute();
+  }
 }

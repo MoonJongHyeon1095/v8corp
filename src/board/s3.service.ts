@@ -28,7 +28,29 @@ export class S3Service {
     return uploadResult;
   }
 
-  async deleteFile(key: string): Promise<AWS.S3.DeleteObjectOutput> {
+  async modifyFile(
+    url: string,
+    file: Express.Multer.File,
+  ): Promise<AWS.S3.ManagedUpload.SendData> {
+    const bucketName = this.configService.get('AWS_BUCKET_NAME');
+    const baseUrl = `https://${bucketName}.s3.ap-northeast-2.amazonaws.com/`;
+    const key = url.replace(baseUrl, '');
+    const uploadResult = await this.s3
+      .upload({
+        Bucket: this.configService.get('AWS_BUCKET_NAME'),
+        Body: file.buffer,
+        Key: key,
+      })
+      .promise();
+
+    return uploadResult;
+  }
+
+  async deleteFile(url: string): Promise<AWS.S3.DeleteObjectOutput> {
+    const bucketName = this.configService.get('AWS_BUCKET_NAME');
+    const baseUrl = `https://${bucketName}.s3.ap-northeast-2.amazonaws.com/`;
+    const key = url.replace(baseUrl, '');
+
     const deleteParams = {
       Bucket: this.configService.get('AWS_BUCKET_NAME'),
       Key: key,

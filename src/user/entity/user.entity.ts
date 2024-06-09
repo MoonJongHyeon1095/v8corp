@@ -1,4 +1,5 @@
 import { Board } from 'src/board/entity/board.entity';
+import { Comment } from 'src/comment/entity/comment.entity';
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 
 @Entity()
@@ -18,6 +19,12 @@ export class User {
   })
   role: string;
 
+  @Column({ nullable: true })
+  refreshToken?: string;
+
   @OneToMany(() => Board, (board) => board.user)
   boards: Board[];
+
+  @OneToMany(() => Comment, (comment) => comment.user)
+  comments: Comment[];
 }

@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import * as dotenv from 'dotenv';
 import { AppConfigModule } from './config/config.module';
 import { ConfigService } from '@nestjs/config';
+import { CommentModule } from './comment/comment.module';
 
 // dotenv.config();
 
@@ -28,6 +29,7 @@ import { ConfigService } from '@nestjs/config';
     AppConfigModule,
     UserModule,
     BoardModule,
+    CommentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

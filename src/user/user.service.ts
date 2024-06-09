@@ -6,13 +6,14 @@ import { ValidatedUserDto } from './dto/user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { LoginResponseDto } from './dto/login.dto';
 import { Role } from './enum/role.enum';
+import { TokenType } from 'src/jwt/enum/token.enum';
 @Injectable()
 export class UserService {
   constructor(
     private userRepository: UserRepository,
     private jwtService: JwtService,
   ) {}
-  async createUser(signupDto: SignupDto): Promise<SignupResponseDto | null> {
+  async createUser(signupDto: SignupDto): Promise<SignupResponseDto> {
     try {
       const hashedPassword = await bcrypt.hash(signupDto.password, 10);
 
@@ -43,15 +44,33 @@ export class UserService {
       return {
         userId: user.userId,
         username: user.username,
+        role: user.role,
       };
     }
     return null;
   }
 
   async login(user: ValidatedUserDto): Promise<LoginResponseDto> {
-    const payload = { username: user.username, sub: user.userId };
-    const accessToken = this.jwtService.sign(payload, { expiresIn: '60m' });
-    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+    const accessPayload = {
+      username: user.username,
+      userId: user.userId,
+      role: user.role,
+      tokenType: TokenType.ACCESS,
+    };
+    const refreshPayload = {
+      username: user.username,
+      userId: user.userId,
+      role: user.role,
+      tokenType: TokenType.REFRESH,
+    };
+    const accessToken = `Bearer ${this.jwtService.sign(accessPayload, {
+      expiresIn: '60m',
+    })}`;
+    const refreshToken = `Bearer ${this.jwtService.sign(refreshPayload, {
+      expiresIn: '7d',
+    })}`;
+
+    await this.userRepository.updateRefreshToken(user.userId, refreshToken);
     return {
       accessToken: accessToken,
       refreshToken: refreshToken,
