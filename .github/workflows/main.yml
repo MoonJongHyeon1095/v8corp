@@ -1,0 +1,43 @@
+name: Deploy to AWS EC2 (Ubuntu)
+
+on:
+  push:
+    branches:
+      - main # 'main' 브랜치에 푸시할 때 실행
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest # GitHub Actions 러너 설정
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3 # 최신 코드를 체크아웃
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x' # Node.js 20 버전 설정
+
+      - name: Install dependencies
+        run: npm install # 의존성 설치
+
+      - name: Build and push Docker images
+        run: |
+          npm run build
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/v8corp .
+          docker push ${{ secrets.DOCKER_USERNAME }}/v8corp
+
+      - name: Execute Docker Compose
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            docker-compose down
+            docker rmi ${{ secrets.DOCKER_USERNAME }}/v8corp
+            docker pull ${{ secrets.DOCKER_USERNAME }}/v8corp
+            docker-compose up -d
+            docker image prune -f
