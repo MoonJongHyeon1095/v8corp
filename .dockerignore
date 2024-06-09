@@ -8,6 +8,13 @@ dist
 node_modules
 coverage
 
+# Test-related files and directories
+**.spec.ts
+**/__tests__
+**/*.test.ts
+**/*.spec.ts
+jest.config.js
+test-setup.js
 
 # Files not required for production
 .editorconfig

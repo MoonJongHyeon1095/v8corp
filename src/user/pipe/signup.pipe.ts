@@ -32,7 +32,7 @@ export class SignupPipe implements PipeTransform {
           messages.push('username은 4글자 이상, 20글자 이하 이어야 합니다.');
         }
         if (err.property === 'password') {
-          messages.push('password는 10글자 이상, 20글자 이하 이어야 합니다.');
+          messages.push('password는 8글자 이상, 20글자 이하 이어야 합니다.');
         }
       }
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { SignupDto, SignupResponseDto } from './dto/signup.dto';
 import * as bcrypt from 'bcrypt';
 import { UserRepository } from './user.repository';
@@ -16,6 +16,7 @@ export class UserService {
   ) {}
   async createUser(signupDto: SignupDto): Promise<SignupResponseDto> {
     try {
+      await this.validateDuplicateUser(signupDto.username);
       const hashedPassword = await bcrypt.hash(signupDto.password, 10);
 
       const newUser = await this.userRepository.createUser(
@@ -103,5 +104,10 @@ export class UserService {
       accessToken: accessToken,
       refreshToken: refreshToken,
     };
+  }
+
+  private async validateDuplicateUser(username: string) {
+    this.userRepository.findByUsername(username);
+    throw new ConflictException('중복된 username 입니다.');
   }
 }

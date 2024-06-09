@@ -6,7 +6,7 @@ export class SignupDto {
   username: string;
 
   @IsString()
-  @Length(10, 20)
+  @Length(8, 20)
   password: string;
 }
 
