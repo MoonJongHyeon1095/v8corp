@@ -74,11 +74,13 @@ describe('BoardService', () => {
     const createBoardDto = { title: 'New Board', content: 'Content here' };
     const user = { userId: 1, username: 'testUser', role: 'normal' };
     const result = await service.createBoard(createBoardDto, user, 1);
-    expect(boardRepository.createBoard).toHaveBeenCalled();
+    expect(boardRepository.createBoard).toHaveBeenCalledWith(
+      expect.any(Object),
+    );
     expect(result).toHaveProperty('boardId', 1);
   });
 
-  // it('should throw NotFoundException if board to delete is not found', async () => {
+  // it('삭제 대상 게시물을 찾지 못할 때', async () => {
   //   boardRepository.getBoardById.mockResolvedValue(null);
   //   await expect(service.deleteBoard(999, 1)).rejects.toThrow(
   //     NotFoundException,
