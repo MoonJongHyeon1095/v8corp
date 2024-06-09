@@ -1,4 +1,9 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { SignupDto, SignupResponseDto } from './dto/signup.dto';
 import * as bcrypt from 'bcrypt';
 import { UserRepository } from './user.repository';
@@ -15,25 +20,21 @@ export class UserService {
     private jwtService: JwtService,
   ) {}
   async createUser(signupDto: SignupDto): Promise<SignupResponseDto> {
-    try {
-      await this.validateDuplicateUser(signupDto.username);
-      const hashedPassword = await bcrypt.hash(signupDto.password, 10);
+    await this.validateDuplicateUser(signupDto.username);
+    const hashedPassword = await bcrypt.hash(signupDto.password, 10);
 
-      const newUser = await this.userRepository.createUser(
-        signupDto.username,
-        hashedPassword,
-        Role.NORMAL,
-      );
-      if (newUser) {
-        return {
-          userId: newUser.userId,
-          username: newUser.username,
-        } as SignupResponseDto;
-      }
-      return null;
-    } catch (error) {
-      console.error('Error creating user:', error);
-      throw error;
+    const newUser = await this.userRepository.createUser(
+      signupDto.username,
+      hashedPassword,
+      Role.NORMAL,
+    );
+    if (newUser) {
+      return {
+        userId: newUser.userId,
+        username: newUser.username,
+      } as SignupResponseDto;
+    } else {
+      throw new InternalServerErrorException('회원가입 오류');
     }
   }
 
@@ -48,8 +49,9 @@ export class UserService {
         username: user.username,
         role: user.role,
       };
+    } else {
+      throw new UnauthorizedException('인증정보가 올바르지 않습니다.');
     }
-    return null;
   }
 
   async login(user: ValidatedUserDto): Promise<LoginResponseDto> {
@@ -107,7 +109,9 @@ export class UserService {
   }
 
   private async validateDuplicateUser(username: string) {
-    this.userRepository.findByUsername(username);
-    throw new ConflictException('중복된 username 입니다.');
+    const user = await this.userRepository.findByUsername(username);
+    if (user) {
+      throw new ConflictException('중복된 username 입니다.');
+    }
   }
 }

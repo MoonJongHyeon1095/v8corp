@@ -28,21 +28,11 @@ export class UserController {
   @Post('login')
   @UsePipes(new SignupPipe())
   async login(@Body() loginDto: LoginDto): Promise<LoginResponseDto> {
-    try {
-      const user = await this.userService.validateUser(
-        loginDto.username,
-        loginDto.password,
-      );
-      if (!user) {
-        throw new HttpException(
-          '인증정보가 올바르지 않습니다',
-          HttpStatus.UNAUTHORIZED,
-        );
-      }
-      return this.userService.login(user);
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    const user = await this.userService.validateUser(
+      loginDto.username,
+      loginDto.password,
+    );
+    return this.userService.login(user);
   }
 
   /**
@@ -53,15 +43,7 @@ export class UserController {
   @Post('signup')
   @UsePipes(new SignupPipe())
   async signup(@Body() signupDto: SignupDto): Promise<SignupResponseDto> {
-    try {
-      const user = await this.userService.createUser(signupDto);
-      if (!user) {
-        throw new HttpException('회원가입 실패', HttpStatus.BAD_REQUEST);
-      }
-      return user;
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    return this.userService.createUser(signupDto);
   }
 
   /**

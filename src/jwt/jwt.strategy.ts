@@ -8,7 +8,6 @@ import { TokenType } from './enum/token.enum';
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private configService: ConfigService) {
     const jwtSecret = configService.get<string>('JWT_SECRET');
-    console.log('JWT Secret from Config in constructor:', jwtSecret);
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: true, //false로 하면 passport 가 자동으로 예외 처리
