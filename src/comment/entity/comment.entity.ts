@@ -1,5 +1,5 @@
-import { Board } from 'src/board/entity/board.entity';
-import { User } from 'src/user/entity/user.entity';
+import { Board } from '../../board/entity/board.entity';
+import { User } from '../../user/entity/user.entity';
 import {
   Entity,
   Column,

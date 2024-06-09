@@ -6,7 +6,8 @@ import { ValidatedUserDto } from './dto/user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { LoginResponseDto } from './dto/login.dto';
 import { Role } from './enum/role.enum';
-import { TokenType } from 'src/jwt/enum/token.enum';
+import { TokenType } from '.././jwt/enum/token.enum';
+import { RefreshResponseDto } from './dto/refresh.dto';
 @Injectable()
 export class UserService {
   constructor(
@@ -51,6 +52,33 @@ export class UserService {
   }
 
   async login(user: ValidatedUserDto): Promise<LoginResponseDto> {
+    const accessPayload = {
+      username: user.username,
+      userId: user.userId,
+      role: user.role,
+      tokenType: TokenType.ACCESS,
+    };
+    const refreshPayload = {
+      username: user.username,
+      userId: user.userId,
+      role: user.role,
+      tokenType: TokenType.REFRESH,
+    };
+    const accessToken = `Bearer ${this.jwtService.sign(accessPayload, {
+      expiresIn: '60m',
+    })}`;
+    const refreshToken = `Bearer ${this.jwtService.sign(refreshPayload, {
+      expiresIn: '7d',
+    })}`;
+
+    await this.userRepository.updateRefreshToken(user.userId, refreshToken);
+    return {
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    };
+  }
+
+  async refresh(user: ValidatedUserDto): Promise<RefreshResponseDto> {
     const accessPayload = {
       username: user.username,
       userId: user.userId,

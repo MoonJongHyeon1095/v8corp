@@ -1,5 +1,5 @@
-import { Board } from 'src/board/entity/board.entity';
-import { Comment } from 'src/comment/entity/comment.entity';
+import { Board } from '../../board/entity/board.entity';
+import { Comment } from '../../comment/entity/comment.entity';
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 
 @Entity()

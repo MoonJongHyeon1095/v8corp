@@ -6,6 +6,15 @@ import { User } from './entity/user.entity';
 export class UserRepository {
   constructor(private dataSource: DataSource) {}
 
+  async findByUserId(userId: number): Promise<User | null> {
+    return this.dataSource
+      .createQueryBuilder()
+      .select('user')
+      .from(User, 'user')
+      .where('user.userId = :userId', { userId })
+      .getOne();
+  }
+
   async findByUsername(username: string): Promise<User | null> {
     return this.dataSource
       .createQueryBuilder()
