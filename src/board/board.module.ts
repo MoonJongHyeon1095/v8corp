@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommentRepository } from 'src/comment/comment.repository';
@@ -15,8 +16,11 @@ import { ViewRepository } from './view.repository';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Board, View]),
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
+    JwtModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get('JWT_SECRET'),
+      }),
     }),
   ],
   controllers: [BoardController],

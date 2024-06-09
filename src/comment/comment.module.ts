@@ -5,11 +5,15 @@ import { CommentController } from './comment.controller';
 import { CommentService } from './comment.service';
 import { Comment } from 'src/comment/entity/comment.entity';
 import { CommentRepository } from './comment.repository';
+import { ConfigService } from '@nestjs/config';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Comment]),
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
+    JwtModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get('JWT_SECRET'),
+      }),
     }),
   ],
   controllers: [CommentController],

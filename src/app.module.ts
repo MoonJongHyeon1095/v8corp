@@ -6,6 +6,7 @@ import { AppConfigModule } from './config/config.module';
 import { ConfigService } from '@nestjs/config';
 import { CommentModule } from './comment/comment.module';
 import { StatisticModule } from './statistic/statistic.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
