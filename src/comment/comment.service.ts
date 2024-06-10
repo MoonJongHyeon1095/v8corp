@@ -7,16 +7,22 @@ import { CommentRepository } from './comment.repository';
 import { CreateCommentDto } from './dto/comment.dto';
 import { randomBytes } from 'crypto';
 import { Comment } from './entity/comment.entity';
+import { BoardRepository } from 'src/board/board.repository';
 @Injectable()
 export class CommentService {
-  constructor(private commentRepository: CommentRepository) {}
+  constructor(
+    private commentRepository: CommentRepository,
+    private boardRepository: BoardRepository,
+  ) {}
 
   async createComment(
     dto: CreateCommentDto,
     boardId: number,
     userId: number,
   ): Promise<Comment> {
+    await this.validateBoard(boardId);
     const commentTag = this.generateUniqueCommentTag();
+
     return this.commentRepository.createComment(
       commentTag,
       dto.content,
@@ -83,6 +89,12 @@ export class CommentService {
     return comments.map((comment) => comment.commentId);
   }
 
+  private async validateBoard(boardId: number) {
+    const board = await this.boardRepository.getBoardById(boardId);
+    if (!board)
+      throw new NotFoundException(`${boardId}번 게시글이 존하 않습니다`);
+  }
+
   private validateUser(commentUserId: number, userId: number): void {
     if (commentUserId !== userId) {
       throw new ForbiddenException(
@@ -90,6 +102,7 @@ export class CommentService {
       );
     }
   }
+
   private generateUniqueCommentTag(): string {
     return randomBytes(10).toString('hex'); //20글자
   }
