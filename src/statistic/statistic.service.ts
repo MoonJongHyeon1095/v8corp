@@ -64,10 +64,10 @@ export class StatisticService {
     job.start();
   }
 
-  //매주 일요일 0시 연간 통계
+  //매주 일요일 2시 연간 통계
   private scheduleAnnualJob() {
     const job = new CronJob(
-      '44 13 * * *',
+      '0 2 * * 0',
       () => {
         this.logger.log('Annual job started');
         this.handleCron('year', 'annualView');

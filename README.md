@@ -1,73 +1,41 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+## 브이에이트코프 과제
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+- [API 명세서](https://foggy-unicorn-28d.notion.site/API-9c3a6024fcb14927ab8e21ec64ab2e5a?pvs=4)
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 🛠 기능구현 특이사항
 
-## Description
+### 게시글 (Board) 관련
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+1. **검색**  
+   a. v1/api/board/search?query=검색어&criteria=검색기준  
+   b. 쿼리 스트링으로 검색어 및 검색기준 전달  
+   c. 검색기준 3종류 : all, title, author (default all)
 
-## Installation
+2. **QnA 리스트 및 공지 리스트 조회**  
+   a. /v1/api/board/qna?sortBy=정렬기준  
+   b. 정렬기준 5종류 : createdAt, totalView, weeklyView, monthlyView, annualView  
+   c. 공지와 QnA 리스트 한꺼번에 응답
 
-```bash
-$ npm install
-```
+3. **QnA, 공지, 1:1문의 생성 관련**  
+   a. multipart/form-data 로 요청  
+   b. 게시글 본문은 key 값 'body'로 JSON 데이터 전달  
+   c. 이미지는 key 값 'file'로 전달
 
-## Running the app
+4. **S3 버킷 이미지 생성, 수정, 삭제 구현 확인**
 
-```bash
-# development
-$ npm run start
+### 댓글 (Comment) 관련
 
-# watch mode
-$ npm run start:dev
+1. **대댓글 관련**  
+   a. 대댓글을 댓글(Comment)의 1:N 테이블로 만들지 않음  
+   b. commentTag라는 UUID활용  
+   c. 같은 commentTag별로 그룹화 및 id 오름차순 정렬  
+   d. c의 응답 중 첫번째 데이터는 댓글, 이후 데이터는 대댓글
 
-# production mode
-$ npm run start:prod
-```
+2. **게시글 삭제시 관련 댓글 Soft Delete**
 
-## Test
+### 조회수 (View) 관련
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
+1. **CronJob 을 통해 기간별 일괄 통계처리 및 업데이트**  
+   a. 매일 0시 주간 조회수 통계처리 및 Board 테이블 업데이트  
+   b. 매일 1시 월간 조회수 통계처리 및 Board 테이블 업데이트  
+   c. 매주 일요일 2시 연간 조회수 통계처리 및 Board 테이블 업데이트
