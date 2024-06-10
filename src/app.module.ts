@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { UserModule } from './user/user.module';
 import { BoardModule } from './board/board.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -6,7 +6,7 @@ import { AppConfigModule } from './config/config.module';
 import { ConfigService } from '@nestjs/config';
 import { CommentModule } from './comment/comment.module';
 import { StatisticModule } from './statistic/statistic.module';
-import { JwtModule } from '@nestjs/jwt';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 @Module({
   imports: [

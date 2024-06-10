@@ -14,6 +14,14 @@ import { UserService } from './user.service';
 import { Request } from 'express';
 import { ValidatedUserDto } from './dto/user.dto';
 import { RefreshResponseDto } from './dto/refresh.dto';
+import {
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+@ApiTags('User')
 @Controller('v1/api/user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -25,6 +33,17 @@ export class UserController {
    */
   @Post('login')
   @UsePipes(new SignupPipe())
+  @ApiOperation({
+    summary: 'Login',
+    description: 'username, password로 로그인',
+  })
+  @ApiBody({ type: LoginDto })
+  @ApiResponse({
+    status: 201,
+    description: '로그인 성공',
+    type: LoginResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async login(@Body() loginDto: LoginDto): Promise<LoginResponseDto> {
     const user = await this.userService.validateUser(
       loginDto.username,
@@ -40,6 +59,17 @@ export class UserController {
    */
   @Post('signup')
   @UsePipes(new SignupPipe())
+  @ApiOperation({
+    summary: 'Signup',
+    description: 'username, password로 회원가입',
+  })
+  @ApiBody({ type: SignupDto })
+  @ApiResponse({
+    status: 201,
+    description: '회원가입 성공',
+    type: SignupResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
   async signup(@Body() signupDto: SignupDto): Promise<SignupResponseDto> {
     return this.userService.createUser(signupDto);
   }
@@ -49,7 +79,18 @@ export class UserController {
    * @returns accessToken, refreshToken
    */
   @Post('refresh')
+  @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({
+    summary: 'Refresh Token',
+    description: 'Authorazation 헤더에 refreshToken을 전송',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '토큰 재발급',
+    type: RefreshResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async refresh(@Req() req: Request): Promise<RefreshResponseDto> {
     const user = req.user as ValidatedUserDto;
 

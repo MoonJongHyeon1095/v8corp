@@ -13,7 +13,6 @@ import {
   UploadedFile,
   UseGuards,
   UseInterceptors,
-  UsePipes,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -29,7 +28,18 @@ import { ValidatedUserDto } from 'src/user/dto/user.dto';
 import { BoardPipe } from './pipe/board.pipe';
 import { SortByPipe } from './pipe/sortby.pipe';
 import { Board } from './entity/board.entity';
+import {
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+  ApiTags,
+  ApiConsumes,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
+@ApiTags('Board')
 @Controller('v1/api/board')
 export class BoardController {
   constructor(private readonly boardService: BoardService) {}
@@ -40,6 +50,18 @@ export class BoardController {
    * @returns 검색 결과 리스트 응답
    */
   @Get('search')
+  @ApiOperation({
+    summary: '게시글 검색',
+    description: '검색어와 검색기준으로 게시글 검색',
+  })
+  @ApiQuery({ name: 'query', type: String, description: '검색어' })
+  @ApiQuery({
+    name: 'criteria',
+    type: String,
+    enum: ['all', 'title', 'author'],
+    description: '검색기준',
+  })
+  @ApiResponse({ status: 200, description: '검색 성공', type: [Board] })
   async searchBoard(
     @Query('query') query: string,
     @Query('criteria') criteria: 'all' | 'title' | 'author',
@@ -53,6 +75,21 @@ export class BoardController {
    * @returns 공지와 QnA 리스트 응답
    */
   @Get('qna')
+  @ApiOperation({
+    summary: 'QnA 리스트, 공지 리스트 조회',
+    description: '공지 리스트와 함께, 정렬 기준에 따른 QnA 리스트 반환',
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    type: String,
+    description: '정렬기준',
+    enum: ['createdAt', 'totalView', 'weeklyView', 'monthlyView', 'annualView'],
+  })
+  @ApiResponse({
+    status: 200,
+    description: '조회 성공',
+    type: [GetQnAResponseDto],
+  })
   async getQnaList(
     @Query('sortBy', SortByPipe) sortBy: string,
   ): Promise<GetQnAResponseDto[]> {
@@ -65,7 +102,13 @@ export class BoardController {
    * @returns 문의한 게시물 최신순 정렬
    */
   @Get('inquiry')
+  @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({
+    summary: '1:1 문의 리스트 조회',
+    description: '사용자가 작성한 1:1 문의글만 반환',
+  })
+  @ApiResponse({ status: 200, description: '조회 성공', type: [Board] })
   async getInquiryList(@Req() req: Request): Promise<Board[]> {
     const user = req.user as ValidatedUserDto;
     return this.boardService.getInquiryList(user.userId);
@@ -77,6 +120,12 @@ export class BoardController {
    * @returns 댓글 대댓글 포함 게시글 상세 응답
    */
   @Get(':boardId')
+  @ApiOperation({
+    summary: '글 상세 조회',
+    description: '댓글 및 대댓글을 포함한 게시글 상세조회, 총 조회수 증가',
+  })
+  @ApiParam({ name: 'boardId', type: Number, description: '게시글 ID' })
+  @ApiResponse({ status: 200, description: '조회 성공', type: Board })
   async getOne(
     @Param('boardId', ParseIntPipe) boardId: number,
   ): Promise<Board> {
@@ -90,8 +139,40 @@ export class BoardController {
    * @returns 생성된 게시물 정보
    */
   @Post('qna')
+  @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({
+    summary: 'QnA 생성',
+    description: 'QnA 생성, 이미지 파일은 optional',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'QnA Data',
+    schema: {
+      type: 'object',
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            title: { type: 'string', description: 'QnA 제목' },
+            content: { type: 'string', description: 'QnA 내용' },
+          },
+          description: 'JSON body of the QnA',
+        },
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'Optional image file',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'QnA 생성',
+    type: CreateBoardResponseDto,
+  })
   async createQnA(
     @Req() req: Request,
     @Body(BoardPipe) body: CreateBoardDto,
@@ -108,8 +189,35 @@ export class BoardController {
    * @returns 생성된 게시물 정보
    */
   @Post('inquiry')
+  @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({
+    summary: '1:1 문의 생성',
+    description: '1:1 문의 생성, 이미지 파일은 optional',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Inquiry Data',
+    schema: {
+      type: 'object',
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            title: { type: 'string', description: '문의글 제목' },
+            content: { type: 'string', description: '문의글 내용' },
+          },
+        },
+        file: { type: 'string', format: 'binary', description: '이미지 파일' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: '1:1 문의 생성',
+    type: CreateBoardResponseDto,
+  })
   async createInquiry(
     @Req() req: Request,
     @Body(BoardPipe) body: CreateBoardDto,
@@ -126,8 +234,40 @@ export class BoardController {
    * @returns 생성된 게시물 정보
    */
   @Post('notice')
+  @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({
+    summary: '공지 생성',
+    description: '공지글 생성, 이미지파일은 optional',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Notice Data',
+    schema: {
+      type: 'object',
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            title: { type: 'string', description: '공지 제목' },
+            content: { type: 'string', description: '공지 내용' },
+          },
+        },
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'Optional image file',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: '공지 생성',
+    type: CreateBoardResponseDto,
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden - 관리자만 작성 가능' })
   async createNotice(
     @Req() req: Request,
     @Body(BoardPipe) body: CreateBoardDto,
@@ -148,8 +288,40 @@ export class BoardController {
    * @returns 수정된 게시글 정보 응답
    */
   @Put(':boardId')
+  @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({
+    summary: '게시글 수정',
+    description: '모든 카테고리의 게시글 수정, 작성자만 수정 가능',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Update Board Data',
+    schema: {
+      type: 'object',
+      properties: {
+        body: {
+          type: 'object',
+          properties: {
+            title: { type: 'string', description: '수정 제목' },
+            content: { type: 'string', description: '수정 내용' },
+          },
+        },
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: '수정 이미지(optional)',
+        },
+      },
+    },
+  })
+  @ApiParam({ name: 'boardId', type: Number, description: '수정할 게시글 ID' })
+  @ApiResponse({
+    status: 200,
+    description: '수정 성공',
+    type: CreateBoardResponseDto,
+  })
   async updateBoard(
     @Req() req: Request,
     @Param('boardId', ParseIntPipe) boardId: number,
@@ -166,7 +338,14 @@ export class BoardController {
    * @returns 문자열
    */
   @Delete(':boardId')
+  @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({
+    summary: '게시글 삭제',
+    description: '해당 작성자만 삭제 가능',
+  })
+  @ApiParam({ name: 'boardId', type: Number, description: '삭제할 게시글 ID' })
+  @ApiResponse({ status: 200, description: '삭제 완료' })
   async deleteBoard(
     @Req() req: Request,
     @Param('boardId', ParseIntPipe) boardId: number,
