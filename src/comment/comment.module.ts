@@ -6,6 +6,7 @@ import { CommentService } from './comment.service';
 import { Comment } from 'src/comment/entity/comment.entity';
 import { CommentRepository } from './comment.repository';
 import { ConfigService } from '@nestjs/config';
+import { BoardRepository } from 'src/board/board.repository';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Comment]),
@@ -17,6 +18,6 @@ import { ConfigService } from '@nestjs/config';
     }),
   ],
   controllers: [CommentController],
-  providers: [CommentService, CommentRepository],
+  providers: [CommentService, CommentRepository, BoardRepository],
 })
 export class CommentModule {}
