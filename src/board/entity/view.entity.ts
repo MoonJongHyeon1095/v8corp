@@ -13,8 +13,7 @@ export class View {
   viewId: number;
 
   @Column({
-    type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP',
+    type: 'date',
   })
   viewedAt: Date;
 

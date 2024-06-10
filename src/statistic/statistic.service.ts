@@ -1,11 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Injectable, Logger } from '@nestjs/common';
 import { CronJob } from 'cron';
 import { ViewRepository } from 'src/board/view.repository';
 
 @Injectable()
 export class StatisticService {
   private readonly timeZone = 'Asia/Seoul';
+  private readonly logger = new Logger(StatisticService.name);
+
   constructor(private readonly viewRepository: ViewRepository) {
     this.scheduleWeeklyJob();
     this.scheduleMonthlyJob();
@@ -37,7 +38,10 @@ export class StatisticService {
   private scheduleWeeklyJob() {
     const job = new CronJob(
       '0 0 * * *',
-      () => this.handleCron('week', 'weeklyView'),
+      () => {
+        this.logger.log('Weekly job started');
+        this.handleCron('week', 'weeklyView');
+      },
       null,
       true,
       this.timeZone,
@@ -49,7 +53,10 @@ export class StatisticService {
   private scheduleMonthlyJob() {
     const job = new CronJob(
       '0 1 * * *',
-      () => this.handleCron('month', 'monthlyView'),
+      () => {
+        this.logger.log('Monthly job started');
+        this.handleCron('month', 'monthlyView');
+      },
       null,
       true,
       this.timeZone,
@@ -60,8 +67,11 @@ export class StatisticService {
   //매주 일요일 0시 연간 통계
   private scheduleAnnualJob() {
     const job = new CronJob(
-      '0 0 * * 0',
-      () => this.handleCron('year', 'annualView'),
+      '44 13 * * *',
+      () => {
+        this.logger.log('Annual job started');
+        this.handleCron('year', 'annualView');
+      },
       null,
       true,
       this.timeZone,

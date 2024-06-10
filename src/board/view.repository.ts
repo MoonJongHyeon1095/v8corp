@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { Board } from './entity/board.entity';
 import { View } from './entity/view.entity';
 @Injectable()
 export class ViewRepository {
+  private readonly logger = new Logger(ViewRepository.name);
   constructor(private dataSource: DataSource) {}
   async createView(boardId: number, viewedAt: Date): Promise<View> {
     const view = new View();
@@ -35,11 +36,17 @@ export class ViewRepository {
       .groupBy('view.boardId');
 
     const results = await query.getRawMany();
+    this.logger.log(
+      `게시물 ${results.length} 개에 대하여 조회기록, ${pastDate.toISOString()} 이후로`,
+    );
     const boardRepository = this.dataSource.getRepository(Board);
     for (const result of results) {
       await boardRepository.update(result.boardId, {
         [periodViewCount]: result.count,
       });
     }
+    this.logger.log(
+      `게시물 ${results.length}개의 ${periodViewCount} 칼럼 업데이트 `,
+    );
   }
 }
