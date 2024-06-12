@@ -12,6 +12,7 @@ import { Board } from './entity/board.entity';
 import { View } from './entity/view.entity';
 import { S3Service } from './s3.service';
 import { ViewRepository } from './view.repository';
+import { CircuitBreakerInterceptor } from '../interceptor/resilience.interceptor';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { ViewRepository } from './view.repository';
     JwtStrategy,
     ViewRepository,
     CommentRepository,
+    CircuitBreakerInterceptor
   ],
 })
 export class BoardModule {}

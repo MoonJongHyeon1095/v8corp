@@ -38,6 +38,7 @@ import {
   ApiConsumes,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { CircuitBreakerInterceptor } from '../interceptor/resilience.interceptor';
 
 @ApiTags('Board')
 @Controller('v1/api/board')
@@ -62,6 +63,7 @@ export class BoardController {
     description: '검색기준',
   })
   @ApiResponse({ status: 200, description: '검색 성공', type: [Board] })
+  @UseInterceptors(CircuitBreakerInterceptor)
   async searchBoard(
     @Query('query') query: string,
     @Query('criteria') criteria: 'all' | 'title' | 'author',
