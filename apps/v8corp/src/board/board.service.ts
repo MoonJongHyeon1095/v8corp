@@ -3,8 +3,8 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CommentService } from 'src/comment/comment.service';
-import { ValidatedUserDto } from 'src/user/dto/user.dto';
+import { CommentService } from '../comment/comment.service';
+import { ValidatedUserDto } from '../user/dto/user.dto';
 import { BoardRepository } from './board.repository';
 import {
   CreateBoardDto,
