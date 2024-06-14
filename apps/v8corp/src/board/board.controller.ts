@@ -24,7 +24,7 @@ import {
 } from './dto/board.dto';
 import { Request } from 'express';
 import { Category } from './enum/category.enum';
-import { ValidatedUserDto } from 'src/user/dto/user.dto';
+import { ValidatedUserDto } from '../user/dto/user.dto';
 import { BoardPipe } from './pipe/board.pipe';
 import { SortByPipe } from './pipe/sortby.pipe';
 import { Board } from './entity/board.entity';
